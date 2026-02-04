@@ -42,6 +42,13 @@ jobs:
           severity-cutoff: high
           output-format: table
 
+      - name: Push Docker image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          push: true
+          tags: ${{ env.IMAGE_NAME }}:${{ env.IMAGE_TAG }}
+
       - name: Run Grype container scan
         uses: anchore/scan-action@v3
         with:
@@ -49,13 +56,6 @@ jobs:
           fail-build: true
           severity-cutoff: high
           output-format: table
-
-      - name: Push Docker image
-        uses: docker/build-push-action@v5
-        with:
-          context: .
-          push: true
-          tags: ${{ env.IMAGE_NAME }}:${{ env.IMAGE_TAG }}
 
       - name: Install Cosign
         uses: sigstore/cosign-installer@v3.2.0
