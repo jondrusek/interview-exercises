@@ -34,28 +34,21 @@ jobs:
           push: false
           tags: ${{ env.IMAGE_NAME }}:${{ env.IMAGE_TAG }}
           
-      - name: Manual Trivy Setup
-        uses: aquasecurity/setup-trivy@v0.2.0
+      - name: Run Grype SCA scan
+        uses: anchore/scan-action@v3
         with:
-          cache: true
-          version: v0.68.1
+          path: .
+          fail-build: true
+          severity-cutoff: high
+          output-format: table
 
-      - name: Run Trivy SCA scan
-        uses: aquasecurity/trivy-action@v0.33.1
+      - name: Run Grype container scan
+        uses: anchore/scan-action@v3
         with:
-          scan-type: fs
-          ignore-unfixed: true
-          format: table
-          exit-code: 1
-          severity: HIGH,CRITICAL
-
-      - name: Run Trivy container scan
-        uses: aquasecurity/trivy-action@v0.33.1
-        with:
-          image-ref: ${{ env.IMAGE_NAME }}:${{ env.IMAGE_TAG }}
-          format: table
-          exit-code: 1
-          severity: HIGH,CRITICAL
+          image: ${{ env.IMAGE_NAME }}:${{ env.IMAGE_TAG }}
+          fail-build: true
+          severity-cutoff: high
+          output-format: table
 
       - name: Push Docker image
         uses: docker/build-push-action@v5
