@@ -1,0 +1,44 @@
+apiVersion: kyverno.io/v1
+kind: ClusterPolicy
+metadata:
+  name: security
+spec:
+  validationFailureAction: Enforce
+  background: false
+  rules:
+  - name: privileged-containers
+    match:
+      any:
+      - resources:
+        kinds:
+        - Pod
+    validate:
+      message: >-
+        Privileged mode is disallowed. The fields
+        spec.containers[*].securityContext.privileged,
+        spec.initContainers[*].securityContext.privileged, and
+        spec.ephemeralContainers[*].securityContext.privileged must be unset
+        or set to `false`.
+      pattern:
+        spec:
+          =(ephemeralContainers):
+            - =(securityContext):
+                =(privileged): 'false'
+          =(initContainers):
+            - =(securityContext):
+                =(privileged): 'false'
+          containers:
+            - =(securityContext):
+                =(privileged): 'false'
+  - name: host-path
+    match:
+      any:
+      - resources:
+        kinds:
+        - Pod
+      validate:
+        message: HostPath volumes are forbidden.
+        pattern:
+          spec:
+            =(volumes):
+              - X(hostPath): 'null'

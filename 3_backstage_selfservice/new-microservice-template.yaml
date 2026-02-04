@@ -1,0 +1,123 @@
+apiVersion: scaffolder.backstage.io/v1beta3
+kind: Template
+metadata:
+  name: provision-microservice-template
+  title: Provision Microservice
+  description: Sample scaffolder to create and provision and new microservice
+spec:
+  owner: backstage/techdocs-core
+  type: service
+  parameters:
+    - title: Microservice Information
+      required:
+        - namespaceName
+        - dnsName
+      properties:
+        namespaceName:
+          title: Namespace Name
+          type: string
+          description: Name of namespace
+          ui:autofocus: true
+        dnsName:
+          title: DNS Name
+          type: string
+          description: Name of DNS (for example, sampleapi.mtnam.org)
+        description:
+          title: Description
+          type: string
+          description: Description of the new microservice
+        owner:
+          title: Owner
+          type: string
+          description: Owner of the component
+          ui:field: OwnerPicker
+          ui:options:
+            catalogFilter:
+              kind: Group
+    - title: Repository Information
+      required:
+        - repoUrl
+      properties:
+        repoUrl:
+          title: Repository Location
+          type: string
+          ui:field: RepoUrlPicker
+          ui:options:
+            allowedHosts:
+              - github.com
+        collaborators:
+          title: "Collaborating Teams"
+          type: "array"
+          items:
+            type: "object"
+            required:
+              - username
+              - access
+            properties:
+              username:
+                type: "string"
+                title: "Team slug (e.g., my-team-slug)"
+                description: "The slug of the GitHub team to add as a collaborator."
+              access:
+                type: "string"
+                title: "Access Level"
+                description: "The access level (e.g., push, pull, admin)."
+                enum: [pull, push, admin, maintain, triage]
+  steps:
+    - id: fetchBase
+      name: Fetch Base
+      action: fetch:template
+      input:
+        url: ./template
+        values:
+          namespaceName: ${{ parameters.namespaceName }}
+          owner: ${{ parameters.owner }}
+
+    - id: rename-files
+      name: Rename template files
+      action: fs:rename
+      input:
+        files:
+          - from: './output/gitops-files/namespace/namespace.yaml'
+            to: './output/gitops-files/namespace/{{ parameters.namespaceName }}-.yaml'
+
+    - id: fetchDocs
+      name: Fetch Docs
+      action: fetch:plain
+      input:
+        targetPath: ./community
+        url: https://github.com/backstage/community/tree/main/backstage-community-sessions
+
+    - id: publish
+      name: Publish
+      action: publish:github
+      input:
+        description: This is ${{ parameters.name }}
+        repoUrl: ${{ parameters.repoUrl }}
+        defaultBranch: 'main'
+        collaborators: ${{ parameters.collaborators }}
+
+    - id: register
+      name: Register
+      action: catalog:register
+      input:
+        repoContentsUrl: ${{ steps.publish.output.repoContentsUrl }}
+        catalogInfoPath: '/catalog-info.yaml'
+
+    - id: open-pr-to-gitops-repo
+      name: Open Pull Request to GitOps Repo
+      action: publish:github:pull-request
+      input:
+        repoUrl: '://github.com' # Target GitOps repository
+        title: 'feat: Add new service manifest for ${{ parameters.serviceName }}'
+        description: 'This PR adds the necessary configuration files for the new service.'
+        sourcePath: ./output/gitops-files # Path to the generated files in the workspace
+        branchName: 'new-service-${{ parameters.serviceName }}' # Branch name for the PR
+
+  output:
+    links:
+      - title: Repository
+        url: ${{ steps['publish'].output.remoteUrl }}
+      - title: Open in catalog
+        icon: catalog
+        entityRef: ${{ steps['register'].output.entityRef }}
