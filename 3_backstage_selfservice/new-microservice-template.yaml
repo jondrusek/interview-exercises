@@ -78,8 +78,8 @@ spec:
       action: fs:rename
       input:
         files:
-          - from: './output/gitops-files/namespace/namespace.yaml'
-            to: './output/gitops-files/namespace/{{ parameters.namespaceName }}-.yaml'
+          - from: './.gitops/namespace.yaml'
+            to: './.gitops/{{ parameters.namespaceName }}.yaml'
 
     - id: fetchDocs
       name: Fetch Docs

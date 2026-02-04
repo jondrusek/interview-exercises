@@ -1,0 +1,96 @@
+name: Build, Scan, Sign, Push, and Update GitOps
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  build-scan-sign-push:
+    runs-on: ubuntu-latest
+    env:
+      IMAGE_NAME: ghcr.io/${{ github.repository }}
+      IMAGE_TAG: ${{ github.sha }}
+      GITOPS_REPO: your-org/gitops-repo
+      GITOPS_FILE: path/to/dev.yaml
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Log in to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build Docker image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          push: false
+          tags: ${{ env.IMAGE_NAME }}:${{ env.IMAGE_TAG }}
+
+      - name: Run Trivy SCA scan
+        uses: aquasecurity/trivy-action@v0.16.0
+        with:
+          scan-type: fs
+          ignore-unfixed: true
+          format: table
+          exit-code: 1
+          severity: HIGH,CRITICAL
+
+      - name: Run Trivy container scan
+        uses: aquasecurity/trivy-action@v0.16.0
+        with:
+          image-ref: ${{ env.IMAGE_NAME }}:${{ env.IMAGE_TAG }}
+          format: table
+          exit-code: 1
+          severity: HIGH,CRITICAL
+
+      - name: Push Docker image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          push: true
+          tags: ${{ env.IMAGE_NAME }}:${{ env.IMAGE_TAG }}
+
+      - name: Install Cosign
+        uses: sigstore/cosign-installer@v3.2.0
+
+      - name: Sign Docker image
+        run: cosign sign --key ${{ secrets.COSIGN_PRIVATE_KEY }} ${{ env.IMAGE_NAME }}:${{ env.IMAGE_TAG }}
+
+      - name: Checkout GitOps repo
+        uses: actions/checkout@v4
+        with:
+          repository: ${{ env.GITOPS_REPO }}
+          token: ${{ secrets.GITOPS_PAT }}
+          path: gitops
+
+      - name: Update image tag in GitOps manifest
+        run: |
+          sed -i "s|\(image: .*\):.*|\1:${{ env.IMAGE_TAG }}|g" gitops/${{ env.GITOPS_FILE }}
+
+      - name: Commit and push changes
+        run: |
+          cd gitops
+          git config user.name "github-actions"
+          git config user.email "github-actions@github.com"
+          git checkout -b update-image-${{ env.IMAGE_TAG }}
+          git add ${{ env.GITOPS_FILE }}
+          git commit -m "Update image tag to ${{ env.IMAGE_TAG }} for dev"
+          git push origin update-image-${{ env.IMAGE_TAG }}
+
+      - name: Create PR to GitOps repo
+        uses: peter-evans/create-pull-request@v5
+        with:
+          token: ${{ secrets.GITOPS_PAT }}
+          path: gitops
+          commit-message: Update image tag to ${{ env.IMAGE_TAG }} for dev
+          branch: update-image-${{ env.IMAGE_TAG }}
+          title: Update image tag to ${{ env.IMAGE_TAG }} for dev
+          body: Automated PR to update image tag for dev environment
