@@ -8,7 +8,9 @@ jobs:
   build-scan-sign-push:
     runs-on: ubuntu-latest
     permissions:
-      packages: write
+      packages: write # Required for pushing to GitHub Container Registry
+      id-token: write # Required for OIDC authentication
+      contents: read # Default for checking out code
     env:
       IMAGE_NAME: ghcr.io/${{ github.repository }}
       IMAGE_TAG: ${{ github.sha }}
@@ -61,14 +63,9 @@ jobs:
 
       - name: Install Cosign
         uses: sigstore/cosign-installer@v3.2.0
-        
+
       - name: Sign Docker image
-        env:
-          COSIGN_KEY_VALUE: ${{ secrets.COSIGN_PRIVATE_KEY }}
-        run: |
-          echo "$COSIGN_KEY_VALUE" > /tmp/cosign.key
-          cosign sign --key /tmp/cosign.key ${{ env.IMAGE_NAME }}:${{ env.IMAGE_TAG }}
-          rm /tmp/cosign.key
+        run: cosign sign --yes ${{ env.IMAGE_NAME }}:${{ env.IMAGE_TAG }}
 
       - name: Checkout GitOps repo
         uses: actions/checkout@v4
