@@ -87,6 +87,7 @@ jobs:
           git status
           git commit -m "Update image tag to ${{ env.IMAGE_TAG }} for dev"
           git push origin update-image-${{ env.IMAGE_TAG }}
+          git status
 
       - name: Create PR to GitOps repo
         uses: peter-evans/create-pull-request@v5
