@@ -1,22 +1,9 @@
 app:
-  title: Backstage Demo
+  title: PoC MACU Backstage
   baseUrl: http://localhost:3000
-  support:
-    url: https://github.com/backstage/backstage/issues
-    items:
-      - title: Backstage Community
-        icon: chat
-        links:
-          - url: https://backstage.io/docs/overview/support
-            title: Support and community
-      - title: Backstage News
-        icon: docs
-        links:
-          - url: https://backstage.io/blog/
-            title: Backstage Blog
 
 organization:
-  name: Backstage
+  name: MACU
 
 backend:
   baseUrl: http://localhost:7007
@@ -24,172 +11,67 @@ backend:
     port: 7007
   csp:
     connect-src: ["'self'", 'http:', 'https:']
-    img-src:
-      [
-        "'self'",
-        'data:',
-        'https://backstage.io',
-        'https://img.shields.io/',
-        'https://api.dicebear.com/',
-        'https://kroki.io/',
-        'https://www.bestpractices.dev/',
-        'https://api.securityscorecards.dev',
-      ]
-    frame-src: ['https://www.youtube.com']
   cors:
     origin: http://localhost:3000
-    methods: [GET, POST, PUT, DELETE]
+    methods: [GET, HEAD, PATCH, POST, PUT, DELETE]
     credentials: true
   database:
     client: better-sqlite3
     connection: ':memory:'
-  reading:
-    allow:
-      - host: demo.backstage.io
-        paths:
-          - /api/graphql/schema
 
 integrations:
   github:
     - host: github.com
       token: ${GITHUB_TOKEN}
 
+proxy:
+  
+# Reference documentation http://backstage.io/docs/features/techdocs/configuration
+# Note: After experimenting with basic setup, use CI/CD to generate docs
+# and an external cloud storage when deploying TechDocs for production use-case.
+# https://backstage.io/docs/features/techdocs/how-to-guides#how-to-migrate-from-techdocs-basic-to-recommended-deployment-approach
+techdocs:
+  builder: 'local' # Alternatives - 'external'
+  generator:
+    runIn: 'docker' # Alternatives - 'local'
+  publisher:
+    type: 'local' # Alternatives - 'googleGcs' or 'awsS3'. Read documentation for using alternatives.
+
 auth:
   environment: development
   providers:
-    guest:
-      userEntityRef: user:default/guest
+    guest: {}
     github:
       development:
-        clientId: ${GITHUB_DEVELOPMENT_CLIENT_ID}
-        clientSecret: ${GITHUB_DEVELOPMENT_CLIENT_SECRET}
+        clientId: ${GITHUB_CLIENT_ID}
+        clientSecret: ${GITHUB_CLIENT_SECRET}
+
+scaffolder:
+  # see https://backstage.io/docs/features/software-templates/configuration for software template options
 
 catalog:
-  readonly: true
+  import:
+    entityFilename: catalog-info.yaml
+    pullRequestBranchName: backstage-integration
   rules:
-    - allow: [Component, API, System, Domain, Resource, Location, User, Group]
+    - allow: [Component, System, API, Resource, Location]
   locations:
-    # Backstage example components
-    - type: url
-      target: https://github.com/backstage/backstage/blob/master/packages/catalog-model/examples/all-components.yaml
-
-    # Backstage example systems
-    - type: url
-      target: https://github.com/backstage/backstage/blob/master/packages/catalog-model/examples/all-systems.yaml
-
-    # Backstage example APIs
-    - type: url
-      target: https://github.com/backstage/backstage/blob/master/packages/catalog-model/examples/all-apis.yaml
-
-    # Backstage example organization groups
-    - type: url
-      target: https://github.com/backstage/backstage/blob/master/packages/catalog-model/examples/acme/org.yaml
-
-    # Backstage example domains
-    - type: url
-      target: https://github.com/backstage/backstage/blob/master/packages/catalog-model/examples/all-domains.yaml
-
-    # Backstage example resources
-    - type: url
-      target: https://github.com/backstage/backstage/blob/master/packages/catalog-model/examples/all-resources.yaml
-
-    # The backstage demo deployment (this)
-    - type: url
-      target: https://github.com/backstage/demo/blob/master/catalog-info.yaml
-
-    # The backstage library repository
-    - type: url
-      target: https://github.com/backstage/backstage/blob/master/catalog-info.yaml
-
-    # Kubernetes demo component
-    - type: url
-      target: https://github.com/mclarke47/dice-roller/blob/master/catalog-info.yaml
-
-    # Demo Software Template
-    - type: url
-      target: https://github.com/backstage/demo/blob/master/demo-template/template/template.yaml
+    # Workflow templates
+    - type: file
+      target: templates/new-microservice/new-microservice-template.yaml
       rules:
         - allow: [Template]
   providers:
-    github:
-      backstageRepo:
-        organization: 'backstage'
-        catalogPath: '**/catalog-info.yaml'
-        filters:
-          repository: 'backstage'
-        schedule:
-          frequency: { days: 1 }
-          timeout: { minutes: 5 }
-      communityPluginsRepo:
-        organization: 'backstage'
-        catalogPath: '**/catalog-info.yaml'
-        filters:
-          repository: 'community-plugins'
-        schedule:
-          frequency: { days: 1 }
-          timeout: { minutes: 5 }
-
-costInsights:
-  engineerCost: 200000
-  products:
-    computeEngine:
-      name: Compute Engine
-      icon: compute
-    cloudStorage:
-      name: Cloud Storage
-      icon: storage
-    bigQuery:
-      name: BigQuery
-      icon: search
-  metrics:
-    DAU:
-      name: Daily Active Users
-      default: true
-    MSC:
-      name: Monthly Subscribers
-
-techdocs:
-  sanitizer:
-    allowedIframeHosts:
-      - www.youtube.com
-  builder: 'external'
-  generator:
-    runIn: 'local'
-  publisher:
-    type: 'local'
+    githubOrg:
+      id: macuDevops
+      githubUrl: https://github.com
+      orgs: [ 'macu-devops' ]
+      schedule:
+        initialDelay: { seconds: 5 }
+        frequency: { hours: 1 }
+        timeout: { minutes: 50 }
 
 kubernetes:
-  serviceLocatorMethod:
-    type: 'multiTenant'
-  clusterLocatorMethods:
-    - type: 'config'
-      clusters: []
-
-explore:
-  tools:
-    - title: 'Tech Radar'
-      description: 'Tech Radar is a list of technologies, complemented by an assessment result, called ring assignment.'
-      url: '/tech-radar'
-      image: '/tech-radar.png'
-      tags: ['standards', 'landscape']
-    - title: 'Cost Insights'
-      description: 'Insights into cloud costs for your organization.'
-      url: '/cost-insights'
-      image: '/google-cloud.png'
-      tags: ['cloud', 'finops']
-    - title: 'GraphiQL'
-      description: 'Integrates GraphiQL as a tool to browse GraphiQL endpoints inside Backstage.'
-      url: '/graphiql'
-      image: '/graphiql.png'
-      tags: ['graphql', 'dev']
-
-notificationsTester:
+  
+permission:
   enabled: true
-
-events:
-  http:
-    topics:
-      - github
-  modules:
-    github:
-      webhookSecret: ${GITHUB_WEBHOOK_SECRET}

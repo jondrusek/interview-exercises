@@ -27,8 +27,8 @@ node_modules/
 .nvmrc
 
 # dotenv environment variables file
-.env
 .env.test
+.env.local
 
 # Build output
 dist
@@ -55,10 +55,5 @@ e2e-test-report/
 # Cache
 .cache/
 
-# IDE files
-.idea
-.vscode/*
-!.vscode/launch.json
-
-# Local TechDocs
-packages/backend/techdocs/**
+# Rider files
+*.idea

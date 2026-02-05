@@ -1,0 +1,10 @@
+apiVersion: backstage.io/v1alpha1
+kind: Component
+metadata:
+  name: ${{ values.namespaceName }}
+  annotations:
+    github.com/project-slug: ${{ values.namespaceName }}
+spec:
+  type: microservice
+  owner: ${{ values.owner:-unknown }}
+  lifecycle: development

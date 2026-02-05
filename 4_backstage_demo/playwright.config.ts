@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 import { defineConfig } from '@playwright/test';
 import { generateProjects } from '@backstage/e2e-test-utils/playwright';
 
@@ -31,14 +32,8 @@ export default defineConfig({
     ? []
     : [
         {
-          command: 'yarn start app',
+          command: 'yarn start',
           port: 3000,
-          reuseExistingServer: true,
-          timeout: 60_000,
-        },
-        {
-          command: 'yarn start backend',
-          port: 7007,
           reuseExistingServer: true,
           timeout: 60_000,
         },

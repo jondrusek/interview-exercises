@@ -1,7 +1,8 @@
-node_modules
-
+.git
 .yarn/cache
 .yarn/install-state.gz
-
-# Needed for OpenTelemetry
-!packages/backend/src/instrumentation.js
+node_modules
+packages/*/src
+packages/*/node_modules
+plugins
+*.local.yaml
