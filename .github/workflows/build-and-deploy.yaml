@@ -83,8 +83,7 @@ jobs:
           git config user.name "github-actions"
           git config user.email "github-actions@github.com"
           git checkout -b update-image-${{ env.IMAGE_TAG }}
-          git status
-          git add ${{ env.GITOPS_FILE }}
+          git add *
           git status
           git commit -m "Update image tag to ${{ env.IMAGE_TAG }} for dev"
           git push origin update-image-${{ env.IMAGE_TAG }}
