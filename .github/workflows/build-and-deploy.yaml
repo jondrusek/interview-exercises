@@ -78,17 +78,6 @@ jobs:
         run: |
           sed -i "s|\(image: .*\):.*|\1:${{ env.IMAGE_TAG }}|g" ./${{ env.GITOPS_FILE }}
 
-      - name: Commit and push changes
-        run: |
-          git config user.name "github-actions"
-          git config user.email "github-actions@github.com"
-          git checkout -b update-image-${{ env.IMAGE_TAG }}
-          git add *
-          git status
-          git commit -m "Update image tag to ${{ env.IMAGE_TAG }} for dev"
-          git push origin update-image-${{ env.IMAGE_TAG }}
-          git status
-
       - name: Create PR to GitOps repo
         uses: peter-evans/create-pull-request@v5
         with:
