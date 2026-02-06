@@ -135,3 +135,5 @@ spec:
       - title: Open in catalog
         icon: catalog
         entityRef: ${{ steps['register'].output.entityRef }}
+      - title: GitOps Pull Request
+        url: ${{ steps['open-pr-to-gitops-repo'].output.pullRequestUrl }}

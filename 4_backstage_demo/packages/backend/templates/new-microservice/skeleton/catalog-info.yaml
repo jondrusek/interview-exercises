@@ -6,5 +6,5 @@ metadata:
     github.com/project-slug: ${{ values.namespaceName }}
 spec:
   type: microservice
-  owner: ${{ values.owner:-unknown }}
+  owner: guest
   lifecycle: development
