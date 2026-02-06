@@ -1,1 +1,1 @@
-FROM mcr.microsoft.com/dotnet/aspnet:10.0
+FROM nginx:alpine-slim

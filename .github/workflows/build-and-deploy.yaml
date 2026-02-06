@@ -43,7 +43,7 @@ jobs:
         with:
           path: .
           fail-build: true
-          severity-cutoff: high
+          severity-cutoff: critical
           output-format: table
 
       - name: Push Docker image

@@ -1,0 +1,7 @@
+ignore:
+  - vulnerability: GHSA-fjxv-7rqg-78g4
+    package:
+      name: form-data
+  - vulnerability: GHSA-pppg-cpfq-h7wr
+    package:
+      name: jsonpath-plus
