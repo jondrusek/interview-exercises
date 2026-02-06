@@ -11,17 +11,12 @@ spec:
     - title: Microservice Information
       required:
         - namespaceName
-        - dnsName
       properties:
         namespaceName:
           title: Namespace Name
           type: string
-          description: Name of namespace
+          description: Name of namespace (dns entry will be <namespace-name>.domain.com)
           ui:autofocus: true
-        dnsName:
-          title: DNS Name
-          type: string
-          description: Name of DNS (for example, sampleapi.mtnam.org)
         description:
           title: Description
           type: string

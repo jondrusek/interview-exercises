@@ -18078,7 +18078,7 @@ __metadata:
 
 "app@file:../app::locator=backend%40workspace%3Apackages%2Fbackend":
   version: 0.0.0
-  resolution: "app@file:../app#../app::hash=f9dee7&locator=backend%40workspace%3Apackages%2Fbackend"
+  resolution: "app@file:../app#../app::hash=393e92&locator=backend%40workspace%3Apackages%2Fbackend"
   dependencies:
     "@backstage/app-defaults": "npm:^1.6.4"
     "@backstage/catalog-model": "npm:^1.7.5"
@@ -18112,7 +18112,7 @@ __metadata:
     react-dom: "npm:^18.0.2"
     react-router: "npm:^6.3.0"
     react-router-dom: "npm:^6.3.0"
-  checksum: 10c0/b42f74db903f07ce4f086b56642b6e0a907d0d762dcf35a834b4ec3fe4fe6588596c24ec767935ec415abd9a1647da553eb7e1daca11f43148c324f83c971c65
+  checksum: 10c0/ec2a1675fe730f4266cfb5a9dce8090c1c8f80ead03e7ac1333bddace82d54587efecbbcbca157cd0079c755b9b818a834e257b784bfe67c7860049f3fd5039f
   languageName: node
   linkType: hard
 

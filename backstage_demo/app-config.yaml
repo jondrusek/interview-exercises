@@ -1,5 +1,5 @@
 app:
-  title: PoC MACU Backstage
+  title: Interview Exercise
   baseUrl: http://localhost:3000
 
 organization:
@@ -39,12 +39,7 @@ techdocs:
 
 auth:
   environment: development
-  providers:
-    guest: {}
-    github:
-      development:
-        clientId: ${GITHUB_CLIENT_ID}
-        clientSecret: ${GITHUB_CLIENT_SECRET}
+  providers: {}
 
 scaffolder:
   # see https://backstage.io/docs/features/software-templates/configuration for software template options
@@ -61,15 +56,6 @@ catalog:
       target: templates/new-microservice/new-microservice-template.yaml
       rules:
         - allow: [Template]
-  providers:
-    githubOrg:
-      id: macuDevops
-      githubUrl: https://github.com
-      orgs: [ 'macu-devops' ]
-      schedule:
-        initialDelay: { seconds: 5 }
-        frequency: { hours: 1 }
-        timeout: { minutes: 50 }
 
 kubernetes:
   
