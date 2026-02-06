@@ -1,0 +1,143 @@
+apiVersion: scaffolder.backstage.io/v1beta3
+kind: Template
+metadata:
+  name: provision-microservice-template
+  title: Provision Microservice
+  description: Sample scaffolder to create and provision and new microservice
+spec:
+  owner: backstage/techdocs-core
+  type: service
+  parameters:
+    - title: Microservice Information
+      required:
+        - namespaceName
+      properties:
+        namespaceName:
+          title: Namespace Name
+          type: string
+          description: Name of namespace (dns entry will be <namespace-name>.domain.com)
+          ui:autofocus: true
+        description:
+          title: Description
+          type: string
+          description: Description of the new microservice
+        owner:
+          title: Owner
+          type: string
+          description: Owner of the component
+          ui:field: OwnerPicker
+          ui:options:
+            catalogFilter:
+              kind: Group
+    - title: Repository Information
+      required:
+        - repoUrl
+      properties:
+        repoUrl:
+          title: Repository Location
+          type: string
+          description: Select the target repository
+          ui:field: RepoUrlPicker
+          ui:options:
+            allowedHosts:
+              - github.com
+            allowedOwners:
+              - jondrusek
+        collaborators:
+          title: "Collaborating Teams"
+          type: "array"
+          items:
+            type: "object"
+            required:
+              - username
+              - access
+            properties:
+              username:
+                type: "string"
+                title: "Team slug (e.g., my-team-slug)"
+                description: "The slug of the GitHub team to add as a collaborator."
+              access:
+                type: "string"
+                title: "Access Level"
+                description: "The access level (e.g., push, pull, admin)."
+                enum: [ pull, push, admin, maintain, triage ]
+  steps:
+    - id: fetchBase
+      name: Fetch Base For New Repository
+      action: fetch:template
+      input:
+        url: ./skeleton
+        values:
+          namespaceName: ${{ parameters.namespaceName }}
+          owner: ${{ parameters.owner }}
+
+    - id: fetchDocs
+      name: Fetch Docs
+      action: fetch:plain
+      input:
+        targetPath: ./community
+        url: https://github.com/backstage/community/tree/main/backstage-community-sessions
+
+    - id: publish
+      name: Publish New Repository
+      action: publish:github
+      input:
+        description: ${{ parameters.description }}
+        repoUrl: ${{ parameters.repoUrl }}
+        defaultBranch: 'main'
+
+    - id: register
+      name: Register New Repository in Catalog
+      action: catalog:register
+      input:
+        repoContentsUrl: ${{ steps.publish.output.repoContentsUrl }}
+        catalogInfoPath: '/catalog-info.yaml'
+
+    - id: fetchBase-gitops
+      name: Fetch Base For GitOps Repository
+      action: fetch:template
+      input:
+        url: ./skeleton-gitops
+        values:
+          namespaceName: ${{ parameters.namespaceName }}
+          owner: ${{ parameters.owner }}
+
+    - id: rename-files-gitops
+      name: Rename template files
+      action: fs:rename
+      input:
+        files:
+          - from: './gitops/manifests/apps/app/dev/base/namespace.yaml'
+            to: './gitops/manifests/apps/app/dev/base/${{ parameters.namespaceName }}-namespace.yaml'
+          - from: './gitops/manifests/apps/app/dev/base/resource-quota.yaml'
+            to: './gitops/manifests/apps/app/dev/base/${{ parameters.namespaceName }}-resource-quota.yaml'
+          - from: './gitops/manifests/apps/app/dev/base/role.yaml'
+            to: './gitops/manifests/apps/app/dev/base/${{ parameters.namespaceName }}-role.yaml'
+
+    - id: rename-application-folder-gitops
+      name: Rename application folder
+      action: fs:rename
+      input:
+        files:
+          - from: './gitops/manifests/apps/app'
+            to: './gitops/manifests/apps/${{ parameters.namespaceName }}'
+
+    - id: open-pr-to-gitops-repo
+      name: Open Pull Request to GitOps Repo
+      action: publish:github:pull-request
+      input:
+        repoUrl: 'github.com?owner=jondrusek&repo=interview-gitops'
+        title: 'feat: Add new service manifest for ${{ parameters.namespaceName }}'
+        description: 'This PR adds the necessary configuration files for the new service.'
+        sourcePath: ./gitops
+        branchName: 'new-service-${{ parameters.namespaceName }}'
+
+  output:
+    links:
+      - title: Repository
+        url: ${{ steps['publish'].output.remoteUrl }}
+      - title: Open in catalog
+        icon: catalog
+        entityRef: ${{ steps['register'].output.entityRef }}
+      - title: GitOps Pull Request
+        url: ${{ steps['open-pr-to-gitops-repo'].output.pullRequestUrl }}
