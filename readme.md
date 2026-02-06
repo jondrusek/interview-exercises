@@ -8,6 +8,7 @@
 | policies/labels.yaml | sample kyverno label policies |
 | policies/provenance.yaml | sample kyverno signed image enforcement policies |
 | policies/security.yaml | sample kyverno privileged container/hostpath policies |
+| secrets/example-secretyaml | sample secret |
 
 ## Relevant files for section 2 (GitOps & CI/CD)
 
